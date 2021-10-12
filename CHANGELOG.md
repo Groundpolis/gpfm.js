@@ -11,6 +11,11 @@
 
 -->
 
+## 0.20.0-gp-1.0.0
+
+- Initial Release
+- Add GPFM extended formula
+
 ## 0.20.0
 
 npm: https://www.npmjs.com/package/mfm-js/v/0.20.0

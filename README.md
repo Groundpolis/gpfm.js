@@ -1,15 +1,15 @@
-# mfm.js
-An MFM parser implementation with PEG.js.
-[Try it out!](https://runkit.com/npm/mfm-js)
+# gpfm.js
+An GPFM(Extended MFM for Groundpolis) parser implementation with PEG.js. Forked from [mfm.js](https://github.com/misskey-dev/mfm.js).
+<!-- [Try it out!](https://runkit.com/npm/mfm-js) -->
 
-[![Test](https://github.com/misskey-dev/mfm.js/actions/workflows/test.yml/badge.svg)](https://github.com/misskey-dev/mfm.js/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/misskey-dev/mfm.js/branch/develop/graph/badge.svg?token=irAWFiHK8T)](https://codecov.io/gh/misskey-dev/mfm.js)
+<!-- [![Test](https://github.com/misskey-dev/mfm.js/actions/workflows/test.yml/badge.svg)](https://github.com/misskey-dev/mfm.js/actions/workflows/test.yml) -->
+<!-- [![codecov](https://codecov.io/gh/misskey-dev/mfm.js/branch/develop/graph/badge.svg?token=irAWFiHK8T)](https://codecov.io/gh/misskey-dev/mfm.js) -->
 
-[![NPM](https://nodei.co/npm/mfm-js.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mfm-js)
+<!-- [![NPM](https://nodei.co/npm/mfm-js.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/mfm-js) -->
 
 ## Installation
 ```
-npm i mfm-js
+npm i Groundpolis/gpfm.js
 ```
 
 ## Usage
@@ -42,12 +42,12 @@ const text = mfm.toString(mfmTree);
 ## Develop
 ### 1. Clone
 ```
-git clone https://github.com/misskey-dev/mfm.js.git
+git clone https://github.com/Groundpolis/gpfm.js.git
 ```
 
 ### 2. Install packages
 ```
-cd mfm.js
+cd gpfm.js
 npm i
 ```
 

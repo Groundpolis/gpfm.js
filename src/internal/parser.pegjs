@@ -6,6 +6,9 @@
 		CODE_BLOCK,
 		MATH_BLOCK,
 		CENTER,
+		RIGHT,
+		SUP,
+		SUB,
 
 		// inline
 		UNI_EMOJI,
@@ -88,6 +91,9 @@ full
 	/ codeBlock // block
 	/ mathBlock // block
 	/ center // block
+	/ right // block
+	/ sup
+	/ sub
 	/ emojiCode
 	/ unicodeEmoji
 	/ big
@@ -206,6 +212,14 @@ center
 	return CENTER(mergeText(content));
 }
 
+// block: right
+
+right
+	= BEGIN "<right>" LF? content:(!(LF? "</right>" END) @inline)+ LF? "</right>" END
+{
+	return RIGHT(mergeText(content));
+}
+
 //
 // inline rules
 //
@@ -216,6 +230,11 @@ emojiCode
 	= ":" name:$[a-z0-9_+-]i+ ":"
 {
 	return EMOJI_CODE(name);
+}
+	// For Avatar Emoji
+	/ ":@" name:mentionName host:("@" @mentionHost)? ":"
+{
+	return EMOJI_CODE(host ? `@${name}@${host}` : `@${name}`);
 }
 
 // inline: unicode emoji
@@ -250,6 +269,22 @@ bold
 {
 	const parsedContent = applyParser(content, 'inlineParser');
 	return BOLD(parsedContent);
+}
+
+// inline: sup
+
+sup
+	= "<sup>" content:(!"</sup>" @inline)+ "</sup>"
+{
+	return SUP(mergeText(content));
+}
+
+// inline: sub
+
+sub
+	= "<sub>" content:(!"</sub>" @inline)+ "</sub>"
+{
+	return SUB(mergeText(content));
 }
 
 // inline: small

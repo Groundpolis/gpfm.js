@@ -7,8 +7,7 @@
 		MATH_BLOCK,
 		CENTER,
 		RIGHT,
-		SUP,
-		SUB,
+		MARQUEE,
 
 		// inline
 		UNI_EMOJI,
@@ -23,6 +22,8 @@
 		HASHTAG,
 		N_URL,
 		LINK,
+		SUP,
+		SUB,
 		FN,
 		TEXT
 	} = require('../node');
@@ -92,6 +93,7 @@ full
 	/ mathBlock // block
 	/ center // block
 	/ right // block
+	/ marquee // block
 	/ sup
 	/ sub
 	/ emojiCode
@@ -218,6 +220,14 @@ right
 	= BEGIN "<right>" LF? content:(!(LF? "</right>" END) @inline)+ LF? "</right>" END
 {
 	return RIGHT(mergeText(content));
+}
+
+// block: marquee
+
+marquee
+	= BEGIN "<marquee>" LF? content:(!(LF? "</marquee>" END) @inline)+ LF? "</marquee>" END
+{
+	return MARQUEE(mergeText(content));
 }
 
 //

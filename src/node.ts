@@ -2,7 +2,7 @@ export type MfmNode = MfmBlock | MfmInline;
 
 export type MfmPlainNode = MfmUnicodeEmoji | MfmEmojiCode | MfmText;
 
-export type MfmBlock = MfmQuote | MfmSearch | MfmCodeBlock | MfmMathBlock | MfmCenter | MfmRight;
+export type MfmBlock = MfmQuote | MfmSearch | MfmCodeBlock | MfmMathBlock | MfmCenter | MfmRight | MfmMarquee;
 
 const blockTypes: MfmNode['type'][] = ['quote', 'search', 'blockCode', 'mathBlock', 'center'];
 export function isMfmBlock(node: MfmNode): node is MfmBlock {
@@ -58,6 +58,13 @@ export type MfmRight = {
 	children: MfmInline[];
 };
 export const RIGHT = (children: MfmInline[]): NodeType<'right'> => { return { type: 'right', children }; };
+
+export type MfmMarquee = {
+	type: 'marquee';
+	props?: Record<string, unknown>;
+	children: MfmInline[];
+};
+export const MARQUEE = (children: MfmInline[]): NodeType<'marquee'> => { return { type: 'marquee', children }; };
 
 export type MfmSup = {
 	type: 'sup';
@@ -222,4 +229,5 @@ export type NodeType<T extends MfmNode['type']> =
 	T extends 'link' ? MfmLink :
 	T extends 'fn' ? MfmFn :
 	T extends 'text' ? MfmText :
+	T extends 'marquee' ? MfmMarquee :
 	never;

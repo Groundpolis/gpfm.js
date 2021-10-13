@@ -11,6 +11,10 @@
 
 -->
 
+## 0.20.0-gp-1.0.1
+
+- Support marquee
+
 ## 0.20.0-gp-1.0.0
 
 - Initial Release

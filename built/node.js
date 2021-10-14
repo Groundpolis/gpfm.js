@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TEXT = exports.FN = exports.LINK = exports.N_URL = exports.HASHTAG = exports.MENTION = exports.MATH_INLINE = exports.INLINE_CODE = exports.STRIKE = exports.ITALIC = exports.SMALL = exports.BOLD = exports.EMOJI_CODE = exports.UNI_EMOJI = exports.SUB = exports.SUP = exports.RIGHT = exports.CENTER = exports.MATH_BLOCK = exports.CODE_BLOCK = exports.SEARCH = exports.QUOTE = exports.isMfmBlock = void 0;
+exports.TEXT = exports.FN = exports.LINK = exports.N_URL = exports.HASHTAG = exports.MENTION = exports.MATH_INLINE = exports.INLINE_CODE = exports.STRIKE = exports.ITALIC = exports.SMALL = exports.BOLD = exports.EMOJI_CODE = exports.UNI_EMOJI = exports.SUB = exports.SUP = exports.MARQUEE = exports.RIGHT = exports.CENTER = exports.MATH_BLOCK = exports.CODE_BLOCK = exports.SEARCH = exports.QUOTE = exports.isMfmBlock = void 0;
 const blockTypes = ['quote', 'search', 'blockCode', 'mathBlock', 'center'];
 function isMfmBlock(node) {
     return blockTypes.includes(node.type);
@@ -18,6 +18,8 @@ const CENTER = (children) => { return { type: 'center', children }; };
 exports.CENTER = CENTER;
 const RIGHT = (children) => { return { type: 'right', children }; };
 exports.RIGHT = RIGHT;
+const MARQUEE = (children) => { return { type: 'marquee', children }; };
+exports.MARQUEE = MARQUEE;
 const SUP = (children) => { return { type: 'sup', children }; };
 exports.SUP = SUP;
 const SUB = (children) => { return { type: 'sub', children }; };

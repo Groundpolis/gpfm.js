@@ -1,6 +1,6 @@
 export declare type MfmNode = MfmBlock | MfmInline;
 export declare type MfmPlainNode = MfmUnicodeEmoji | MfmEmojiCode | MfmText;
-export declare type MfmBlock = MfmQuote | MfmSearch | MfmCodeBlock | MfmMathBlock | MfmCenter | MfmRight;
+export declare type MfmBlock = MfmQuote | MfmSearch | MfmCodeBlock | MfmMathBlock | MfmCenter | MfmRight | MfmMarquee;
 export declare function isMfmBlock(node: MfmNode): node is MfmBlock;
 export declare type MfmQuote = {
     type: 'quote';
@@ -46,6 +46,12 @@ export declare type MfmRight = {
     children: MfmInline[];
 };
 export declare const RIGHT: (children: MfmInline[]) => NodeType<'right'>;
+export declare type MfmMarquee = {
+    type: 'marquee';
+    props?: Record<string, unknown>;
+    children: MfmInline[];
+};
+export declare const MARQUEE: (children: MfmInline[]) => NodeType<'marquee'>;
 export declare type MfmSup = {
     type: 'sup';
     props?: Record<string, unknown>;
@@ -168,4 +174,4 @@ export declare type MfmText = {
     children?: [];
 };
 export declare const TEXT: (value: string) => NodeType<'text'>;
-export declare type NodeType<T extends MfmNode['type']> = T extends 'quote' ? MfmQuote : T extends 'search' ? MfmSearch : T extends 'blockCode' ? MfmCodeBlock : T extends 'mathBlock' ? MfmMathBlock : T extends 'center' ? MfmCenter : T extends 'right' ? MfmRight : T extends 'sup' ? MfmSup : T extends 'sub' ? MfmSub : T extends 'unicodeEmoji' ? MfmUnicodeEmoji : T extends 'emojiCode' ? MfmEmojiCode : T extends 'bold' ? MfmBold : T extends 'small' ? MfmSmall : T extends 'italic' ? MfmItalic : T extends 'strike' ? MfmStrike : T extends 'inlineCode' ? MfmInlineCode : T extends 'mathInline' ? MfmMathInline : T extends 'mention' ? MfmMention : T extends 'hashtag' ? MfmHashtag : T extends 'url' ? MfmUrl : T extends 'link' ? MfmLink : T extends 'fn' ? MfmFn : T extends 'text' ? MfmText : never;
+export declare type NodeType<T extends MfmNode['type']> = T extends 'quote' ? MfmQuote : T extends 'search' ? MfmSearch : T extends 'blockCode' ? MfmCodeBlock : T extends 'mathBlock' ? MfmMathBlock : T extends 'center' ? MfmCenter : T extends 'right' ? MfmRight : T extends 'sup' ? MfmSup : T extends 'sub' ? MfmSub : T extends 'unicodeEmoji' ? MfmUnicodeEmoji : T extends 'emojiCode' ? MfmEmojiCode : T extends 'bold' ? MfmBold : T extends 'small' ? MfmSmall : T extends 'italic' ? MfmItalic : T extends 'strike' ? MfmStrike : T extends 'inlineCode' ? MfmInlineCode : T extends 'mathInline' ? MfmMathInline : T extends 'mention' ? MfmMention : T extends 'hashtag' ? MfmHashtag : T extends 'url' ? MfmUrl : T extends 'link' ? MfmLink : T extends 'fn' ? MfmFn : T extends 'text' ? MfmText : T extends 'marquee' ? MfmMarquee : never;

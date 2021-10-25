@@ -42,6 +42,18 @@ function stringifyNode(node) {
         case 'center': {
             return `<center>\n${stringifyTree(node.children)}\n</center>`;
         }
+        case 'right': {
+            return `<right>\n${stringifyTree(node.children)}\n</right>`;
+        }
+        case 'sup': {
+            return `<sup>\n${stringifyTree(node.children)}\n</sup>`;
+        }
+        case 'sub': {
+            return `<sub>\n${stringifyTree(node.children)}\n</sub>`;
+        }
+        case 'marquee': {
+            return `<marquee>\n${stringifyTree(node.children)}\n</marquee>`;
+        }
         case 'emojiCode': {
             return `:${node.props.name}:`;
         }

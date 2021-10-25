@@ -1,6 +1,6 @@
 {
   "name": "mfm-js",
-  "version": "0.20.0-gp-1.0.1",
+  "version": "0.20.0-gp-1.0.2",
   "description": "An MFM parser implementation with PEG.js",
   "main": "./built/index.js",
   "types": "./built/index.d.ts",

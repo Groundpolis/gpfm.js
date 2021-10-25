@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TEXT = exports.FN = exports.LINK = exports.N_URL = exports.HASHTAG = exports.MENTION = exports.MATH_INLINE = exports.INLINE_CODE = exports.STRIKE = exports.ITALIC = exports.SMALL = exports.BOLD = exports.EMOJI_CODE = exports.UNI_EMOJI = exports.SUB = exports.SUP = exports.MARQUEE = exports.RIGHT = exports.CENTER = exports.MATH_BLOCK = exports.CODE_BLOCK = exports.SEARCH = exports.QUOTE = exports.isMfmBlock = void 0;
-const blockTypes = ['quote', 'search', 'blockCode', 'mathBlock', 'center'];
+const blockTypes = ['quote', 'search', 'blockCode', 'mathBlock', 'center', 'right', 'marquee'];
 function isMfmBlock(node) {
     return blockTypes.includes(node.type);
 }

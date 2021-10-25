@@ -39,48 +39,60 @@ export function stringifyNode(node: MfmNode): string {
 			return node.props.content;
 		}
 		case 'blockCode': {
-			return `\`\`\`${ node.props.lang ?? '' }\n${ node.props.code }\n\`\`\``;
+			return `\`\`\`${node.props.lang ?? ''}\n${node.props.code}\n\`\`\``;
 		}
 		case 'mathBlock': {
-			return `\\[\n${ node.props.formula }\n\\]`;
+			return `\\[\n${node.props.formula}\n\\]`;
 		}
 		case 'center': {
-			return `<center>\n${ stringifyTree(node.children) }\n</center>`;
+			return `<center>\n${stringifyTree(node.children)}\n</center>`;
+		}
+		case 'right': {
+			return `<right>\n${stringifyTree(node.children)}\n</right>`;
+		}
+		case 'sup': {
+			return `<sup>\n${stringifyTree(node.children)}\n</sup>`;
+		}
+		case 'sub': {
+			return `<sub>\n${stringifyTree(node.children)}\n</sub>`;
+		}
+		case 'marquee': {
+			return `<marquee>\n${stringifyTree(node.children)}\n</marquee>`;
 		}
 		// inline
 		case 'emojiCode': {
-			return `:${ node.props.name }:`;
+			return `:${node.props.name}:`;
 		}
 		case 'unicodeEmoji': {
 			return node.props.emoji;
 		}
 		case 'bold': {
-			return `**${ stringifyTree(node.children) }**`;
+			return `**${stringifyTree(node.children)}**`;
 		}
 		case 'small': {
-			return `<small>${ stringifyTree(node.children) }</small>`;
+			return `<small>${stringifyTree(node.children)}</small>`;
 		}
 		case 'italic': {
-			return `<i>${ stringifyTree(node.children) }</i>`;
+			return `<i>${stringifyTree(node.children)}</i>`;
 		}
 		case 'strike': {
-			return `~~${ stringifyTree(node.children) }~~`;
+			return `~~${stringifyTree(node.children)}~~`;
 		}
 		case 'inlineCode': {
-			return `\`${ node.props.code }\``;
+			return `\`${node.props.code}\``;
 		}
 		case 'mathInline': {
-			return `\\(${ node.props.formula }\\)`;
+			return `\\(${node.props.formula}\\)`;
 		}
 		case 'mention': {
 			return node.props.acct;
 		}
 		case 'hashtag': {
-			return `#${ node.props.hashtag }`;
+			return `#${node.props.hashtag}`;
 		}
 		case 'url': {
 			if (node.props.brackets) {
-				return `<${ node.props.url }>`;
+				return `<${node.props.url}>`;
 			}
 			else {
 				return node.props.url;
@@ -88,7 +100,7 @@ export function stringifyNode(node: MfmNode): string {
 		}
 		case 'link': {
 			const prefix = node.props.silent ? '?' : '';
-			return `${ prefix }[${ stringifyTree(node.children) }](${ node.props.url })`;
+			return `${prefix}[${stringifyTree(node.children)}](${node.props.url})`;
 		}
 		case 'fn': {
 			const argFields = Object.keys(node.props.args).map(key => {
@@ -97,11 +109,11 @@ export function stringifyNode(node: MfmNode): string {
 					return key;
 				}
 				else {
-					return `${ key }=${ value }`;
+					return `${key}=${value}`;
 				}
 			});
 			const args = (argFields.length > 0) ? '.' + argFields.join(',') : '';
-			return `$[${ node.props.name }${ args } ${ stringifyTree(node.children) }]`;
+			return `$[${node.props.name}${args} ${stringifyTree(node.children)}]`;
 		}
 		case 'text': {
 			return node.props.text;

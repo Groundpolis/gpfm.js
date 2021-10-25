@@ -4,7 +4,7 @@ export type MfmPlainNode = MfmUnicodeEmoji | MfmEmojiCode | MfmText;
 
 export type MfmBlock = MfmQuote | MfmSearch | MfmCodeBlock | MfmMathBlock | MfmCenter | MfmRight | MfmMarquee;
 
-const blockTypes: MfmNode['type'][] = ['quote', 'search', 'blockCode', 'mathBlock', 'center'];
+const blockTypes: MfmNode['type'][] = ['quote', 'search', 'blockCode', 'mathBlock', 'center', 'right', 'marquee'];
 export function isMfmBlock(node: MfmNode): node is MfmBlock {
 	return blockTypes.includes(node.type);
 }

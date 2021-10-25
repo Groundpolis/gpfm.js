@@ -50,12 +50,6 @@ export function stringifyNode(node: MfmNode): string {
 		case 'right': {
 			return `<right>\n${stringifyTree(node.children)}\n</right>`;
 		}
-		case 'sup': {
-			return `<sup>\n${stringifyTree(node.children)}\n</sup>`;
-		}
-		case 'sub': {
-			return `<sub>\n${stringifyTree(node.children)}\n</sub>`;
-		}
 		case 'marquee': {
 			return `<marquee>\n${stringifyTree(node.children)}\n</marquee>`;
 		}
@@ -77,6 +71,12 @@ export function stringifyNode(node: MfmNode): string {
 		}
 		case 'strike': {
 			return `~~${stringifyTree(node.children)}~~`;
+		}
+		case 'sup': {
+			return `<sup>${stringifyTree(node.children)}</sup>`;
+		}
+		case 'sub': {
+			return `<sub>${stringifyTree(node.children)}</sub>`;
 		}
 		case 'inlineCode': {
 			return `\`${node.props.code}\``;

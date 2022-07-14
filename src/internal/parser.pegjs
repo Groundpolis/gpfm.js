@@ -34,9 +34,15 @@
 		consumeDynamically
 	} = require('./util');
 
-	function applyParser(input, startRule) {
-		let parseFunc = peg$parse;
-		return parseFunc(input, startRule ? { startRule } : { });
+	function applyParser(input, startRule, opts) {
+		const parseFunc = peg$parse;
+		const parseOpts = {
+			fnNameList: options.fnNameList,
+			nestLimit: (nestLimit - depth),
+			...(opts || {}),
+		};
+		if (startRule) parseOpts.startRule = startRule;
+		return parseFunc(input, parseOpts);
 	}
 
 	// emoji
@@ -68,6 +74,28 @@
 		}
 		return options.fnNameList.includes(name);
 	}
+
+	// nesting control
+
+	const nestLimit = (options.nestLimit != null ? options.nestLimit : 20);
+	let depth = 0;
+	function enterNest() {
+		if (depth + 1 > nestLimit) {
+			return false;
+		}
+		depth++;
+		return true;
+	}
+
+	function leaveNest() {
+		depth--;
+		return true;
+	}
+
+	function fallbackNest() {
+		depth--;
+		return false;
+	}
 }
 
 //
@@ -79,9 +107,6 @@ fullParser
 
 plainParser
 	= nodes:(&. @plain)* { return mergeText(nodes); }
-
-inlineParser
-	= nodes:(&. @inline)* { return mergeText(nodes); }
 
 //
 // syntax list
@@ -130,6 +155,19 @@ inline
 	/ link
 	/ inlineText
 
+L_inline
+	= emojiCode
+	/ unicodeEmoji
+	/ L_big
+	/ L_bold
+	/ L_small
+	/ L_italic
+	/ L_strike
+	/ inlineCode
+	/ mathInline
+	/ L_fn
+	/ L_inlineText
+
 plain
 	= emojiCode
 	/ unicodeEmoji
@@ -142,25 +180,32 @@ plain
 // block: quote
 
 quote
-	= &(BEGIN ">") q:quoteInner LF? { return q; }
+	= &(BEGIN ">") &{ return (depth + 1 <= nestLimit); } @quoteInner LF?
 
 quoteInner
 	= head:(quoteLine / quoteEmptyLine) tails:(quoteLine / quoteEmptyLine)+
 {
+	depth++;
 	const children = applyParser([head, ...tails].join('\n'), 'fullParser');
+	depth--;
 	return QUOTE(children);
 }
 	/ line:quoteLine
 {
+	depth++;
 	const children = applyParser(line, 'fullParser');
+	depth--;
 	return QUOTE(children);
 }
 
 quoteLine
-	= BEGIN ">" _? text:$CHAR+ END { return text; }
+	= BEGIN ">" _? @$CHAR+ END
 
 quoteEmptyLine
-	= BEGIN ">" _? END { return ''; }
+	= BEGIN ">" _? END
+{
+	return '';
+}
 
 // block: search
 
@@ -209,7 +254,7 @@ mathBlockLine
 // block: center
 
 center
-	= BEGIN "<center>" LF? content:(!(LF? "</center>" END) @inline)+ LF? "</center>" END
+	= BEGIN "<center>" LF? content:(!(LF? "</center>" END) @inline)* LF? "</center>" END
 {
 	return CENTER(mergeText(content));
 }
@@ -259,26 +304,37 @@ unicodeEmoji
 // inline: big
 
 big
-	= "***" content:(!"***" @inline)+ "***"
+	= "***" content:bigContent "***"
 {
 	return FN('tada', { }, mergeText(content));
 }
 
+bigContent
+	= &{ return enterNest(); } @(@(!"***" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_big
+	= "***" content:L_bigContent "***"
+{
+	return FN('tada', { }, mergeText(content));
+}
+
+L_bigContent
+	= &{ return enterNest(); } @(@(!"***" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
 // inline: bold
 
 bold
-	= "**" content:(!"**" @inline)+ "**"
+	= "**" content:boldContent "**"
 {
 	return BOLD(mergeText(content));
 }
-	/ "<b>" content:(!"</b>" @inline)+ "</b>"
+	/ "<b>" content:boldTagContent "</b>"
 {
 	return BOLD(mergeText(content));
 }
 	/ "__" content:$(!"__" @([a-z0-9]i / _))+ "__"
 {
-	const parsedContent = applyParser(content, 'inlineParser');
-	return BOLD(parsedContent);
+	return BOLD([TEXT(content)]);
 }
 
 // inline: sup
@@ -297,49 +353,117 @@ sub
 	return SUB(mergeText(content));
 }
 
+boldContent
+	= &{ return enterNest(); } @(@(!"**" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+boldTagContent
+	= &{ return enterNest(); } @(@(!"</b>" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_bold
+	= "**" content:L_boldContent "**"
+{
+	return BOLD(mergeText(content));
+}
+	/ "<b>" content:L_boldTagContent "</b>"
+{
+	return BOLD(mergeText(content));
+}
+	/ "__" content:$(!"__" @([a-z0-9]i / _))+ "__"
+{
+	return BOLD([TEXT(content)]);
+}
+
+L_boldContent
+	= &{ return enterNest(); } @(@(!"**" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_boldTagContent
+	= &{ return enterNest(); } @(@(!"</b>" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
 // inline: small
 
 small
-	= "<small>" content:(!"</small>" @inline)+ "</small>"
+	= "<small>" content:smallContent "</small>"
 {
 	return SMALL(mergeText(content));
 }
 
+smallContent
+	= &{ return enterNest(); } @(@(!"</small>" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_small
+	= "<small>" content:L_smallContent "</small>"
+{
+	return SMALL(mergeText(content));
+}
+
+L_smallContent
+	= &{ return enterNest(); } @(@(!"</small>" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
 // inline: italic
 
 italic
-	= italicTag
-	/ italicAlt
-
-italicTag
-	= "<i>" content:(!"</i>" @inline)+ "</i>"
+	= "<i>" content:italicContent "</i>"
 {
 	return ITALIC(mergeText(content));
 }
+	/ italicAlt
+
+L_italic
+	= "<i>" content:L_italicContent "</i>"
+{
+	return ITALIC(mergeText(content));
+}
+	/ italicAlt
 
 italicAlt
-	= "*" content:$(!"*" ([a-z0-9]i / _))+ "*" &(EOF / LF / _ / ![a-z0-9]i)
+	= "*" content:$([a-z0-9]i / _)+ "*" &(EOF / LF / _ / ![a-z0-9]i)
 {
-	const parsedContent = applyParser(content, 'inlineParser');
-	return ITALIC(parsedContent);
+	return ITALIC([TEXT(content)]);
 }
-	/ "_" content:$(!"_" ([a-z0-9]i / _))+ "_" &(EOF / LF / _ / ![a-z0-9]i)
+	/ "_" content:$([a-z0-9]i / _)+ "_" &(EOF / LF / _ / ![a-z0-9]i)
 {
-	const parsedContent = applyParser(content, 'inlineParser');
-	return ITALIC(parsedContent);
+	return ITALIC([TEXT(content)]);
 }
+
+italicContent
+	= &{ return enterNest(); } @(@(!"</i>" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_italicContent
+	= &{ return enterNest(); } @(@(!"</i>" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
 
 // inline: strike
 
 strike
-	= "~~" content:(!("~" / LF) @inline)+ "~~"
+	= "~~" content:strikeContent "~~"
 {
 	return STRIKE(mergeText(content));
 }
-	/ "<s>" content:(!("</s>" / LF) @inline)+ "</s>"
+	/ "<s>" content:strikeTagContent "</s>"
 {
 	return STRIKE(mergeText(content));
 }
+
+strikeContent
+	= &{ return enterNest(); } @(@(!("~" / LF) @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+strikeTagContent
+	= &{ return enterNest(); } @(@(!"</s>" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_strike
+	= "~~" content:L_strikeContent "~~"
+{
+	return STRIKE(mergeText(content));
+}
+	/ "<s>" content:L_strikeTagContent "</s>"
+{
+	return STRIKE(mergeText(content));
+}
+
+L_strikeContent
+	= &{ return enterNest(); } @(@(!("~" / LF) @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_strikeTagContent
+	= &{ return enterNest(); } @(@(!"</s>" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
 
 // inline: inlineCode
 
@@ -366,112 +490,93 @@ mention
 }
 
 mentionName
-	= !"-" mentionNamePart+ // first char is not "-".
+	= [a-z0-9_]i (&("-"+ [a-z0-9_]i) . / [a-z0-9_]i)*
 {
+	// NOTE: first char and last char are not "-".
 	return text();
 }
-
-mentionNamePart
-	= "-" &mentionNamePart // last char is not "-".
-	/ [a-z0-9_]i
 
 mentionHost
-	= ![.-] mentionHostPart+ // first char is neither "." nor "-".
+	= [a-z0-9_]i (&([.-]i+ [a-z0-9_]i) . / [a-z0-9_]i)*
 {
+	// NOTE: first char and last char are neither "." nor "-".
 	return text();
 }
-
-mentionHostPart
-	= [.-] &mentionHostPart // last char is neither "." nor "-".
-	/ [a-z0-9_]i
 
 // inline: hashtag
 
 hashtag
-	= "#" !("\uFE0F"? "\u20E3") content:hashtagContent
+	= "#" !("\uFE0F"? "\u20E3") !(invalidHashtagContent !hashtagContentPart) content:$hashtagContentPart+
 {
 	return HASHTAG(content);
 }
-
-hashtagContent
-	= !(invalidHashtagContent !hashtagContentPart) hashtagContentPart+ { return text(); }
 
 invalidHashtagContent
 	= [0-9]+
 
 hashtagContentPart
-	= hashtagBracketPair
-	/ hashtagChar
+	= "(" hashPairInner ")"
+	/ "[" hashPairInner "]"
+	/ "「" hashPairInner "」"
+	/ "（" hashPairInner "）"
+	/ ![ 　\t.,!?'"#:\/\[\]【】()「」（）<>] CHAR
 
-hashtagBracketPair
-	= "(" hashtagContent* ")"
-	/ "[" hashtagContent* "]"
-	/ "「" hashtagContent* "」"
-
-hashtagChar
-	= ![ 　\t.,!?'"#:\/\[\]【】()「」<>] CHAR
+hashPairInner
+	= &{ return enterNest(); } @(@hashtagContentPart* &{ return leaveNest(); } / &{ return fallbackNest(); })
 
 // inline: URL
 
 url
-	= "<" url:altUrlFormat ">"
+	= "<" url:$("http" "s"? "://" (!(">" / _) CHAR)+) ">"
 {
 	return N_URL(url, true);
 }
-	/ url:urlFormat
+	/ "http" "s"? "://" (&([.,]+ urlContentPart) . / urlContentPart)+
 {
-	return N_URL(url);
-}
-
-urlFormat
-	= "http" "s"? "://" urlContentPart+
-{
-	return text();
+	// NOTE: last char is neither "." nor ",".
+	return N_URL(text());
 }
 
 urlContentPart
-	= urlBracketPair
-	/ [.,] &urlContentPart // last char is neither "." nor ",".
+	= "(" urlPairInner ")"
+	/ "[" urlPairInner "]"
 	/ [a-z0-9_/:%#@$&?!~=+-]i
 
-urlBracketPair
-	= "(" urlContentPart* ")"
-	/ "[" urlContentPart* "]"
-
-altUrlFormat
-	= "http" "s"? "://" (!(">" / _) CHAR)+
-{
-	return text();
-}
+urlPairInner
+	= &{ return enterNest(); } @(@(urlContentPart / [.,])* &{ return leaveNest(); } / &{ return fallbackNest(); })
 
 // inline: link
 
 link
-	= silent:"?"? "[" label:linkLabel "](" url:linkUrl ")"
+	= silent:"?"? "[" label:linkLabel "](" url:url ")"
 {
-	return LINK((silent != null), url, mergeText(label));
+	return LINK((silent != null), url.props.url, mergeText(label));
 }
 
 linkLabel
-	= linkLabelPart+
-
-linkLabelPart
-	= url { return text(); /* text node */ }
-	/ link { return text(); /* text node */ }
-	/ mention { return text(); /* text node */ }
-	/ !"]" @inline
-
-linkUrl
-	= url { return text(); }
+	= (!"]" @L_inline)+
 
 // inline: fn
 
 fn
-	= "$[" name:$([a-z0-9_]i)+ &{ return ensureFnName(name); } args:fnArgs? _ content:(!("]") @inline)+ "]"
+	= "$[" name:$([a-z0-9_]i)+ &{ return ensureFnName(name); } args:fnArgs? _ content:fnContent "]"
 {
 	args = args || {};
 	return FN(name, args, mergeText(content));
 }
+
+L_fn
+	= "$[" name:$([a-z0-9_]i)+ &{ return ensureFnName(name); } args:fnArgs? _ content:L_fnContent "]"
+{
+	args = args || {};
+	return FN(name, args, mergeText(content));
+}
+
+fnContent
+	= &{ return enterNest(); } @(@(!"]" @inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
+
+L_fnContent
+	= &{ return enterNest(); } @(@(!"]" @L_inline)+ &{ return leaveNest(); } / &{ return fallbackNest(); })
 
 fnArgs
 	= "." head:fnArg tails:("," @fnArg)*
@@ -497,6 +602,10 @@ fnArg
 
 inlineText
 	= !(LF / _) [a-z0-9]i &(hashtag / mention / italicAlt) . { return text(); } // hashtag, mention, italic ignore
+	/ . /* text node */
+
+L_inlineText
+	= !(LF / _) [a-z0-9]i &italicAlt . { return text(); } // italic ignore
 	/ . /* text node */
 
 // inline: text (for plainParser)
